@@ -12,6 +12,7 @@ This project demonstrates how to build an intelligent Recipe Search Engine using
 * **Flask** provides a web interface for recipe search and discovery
 ## Source
 - The source of the dataset is https://www.kaggle.com/datasets/pes12017000148/food-ingredients-and-recipe-dataset-with-images
+- It includes the Dataset and the Images 
 ## Features
 - **Smart Search**: Find recipes by ingredients, tags, or keywords
 - **Similarity Matching**: Uses cosine similarity to find the most relevant recipes
