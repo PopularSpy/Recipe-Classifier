@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍲 Recipe Search Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .search-box {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .search-form {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        #searchInput {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        #searchInput:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+
+        #searchBtn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #searchBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        #searchBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .status.success {
+            color: #27ae60;
+        }
+
+        .status.error {
+            color: #e74c3c;
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .recipe-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .recipe-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .recipe-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .recipe-card:hover .recipe-image img {
+            transform: scale(1.1);
+        }
+
+        .recipe-content {
+            padding: 20px;
+        }
+
+        .recipe-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            line-height: 1.4;
+        }
+
+        .recipe-confidence {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .recipe-tags {
+            margin-bottom: 15px;
+        }
+
+        .recipe-tags strong {
+            color: #8e44ad;
+        }
+
+        .recipe-preview {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .recipe-ingredients, .recipe-instructions {
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-results {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            padding: 40px;
+        }
+
+        .example-queries {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+
+        .example-queries button {
+            background: none;
+            border: 1px solid #667eea;
+            color: #667eea;
+            padding: 5px 12px;
+            border-radius: 15px;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .example-queries button:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Modal for recipe details */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close:hover {
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .search-form {
+                flex-direction: column;
+            }
+
+            .results {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍲 Recipe Search Engine</h1>
+            <p>Find delicious recipes by ingredients, tags, or keywords</p>
+        </div>
+
+        <div class="search-box">
+            <div class="search-form">
+                <input type="text" id="searchInput" placeholder="Search for recipes... (e.g., chicken pasta, vegan curry, chocolate dessert)">
+                <button id="searchBtn">Search</button>
+            </div>
+            
+            <div class="example-queries">
+                Try: 
+                <button onclick="searchExample('chicken')">chicken</button>
+                <button onclick="searchExample('pasta')">pasta</button>
+                <button onclick="searchExample('vegan')">vegan</button>
+                <button onclick="searchExample('chocolate')">chocolate</button>
+                <button onclick="searchExample('spicy')">spicy</button>
+            </div>
+        </div>
+
+        <div id="status" class="status"></div>
+        <div id="results" class="results"></div>
+    </div>
+
+    <!-- Modal for recipe details -->
+    <div id="recipeModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const status = document.getElementById('status');
+        const results = document.getElementById('results');
+        const modal = document.getElementById('recipeModal');
+        const modalContent = document.getElementById('modalContent');
+        const closeBtn = document.querySelector('.close');
+
+        // Search functionality
+        async function performSearch() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'Searching...';
+            status.innerHTML = '<div class="loading"><div class="spinner"></div>Searching for recipes...</div>';
+            results.innerHTML = '';
+
+            try {
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data.results, query);
+                } else {
+                    status.innerHTML = `<div class="status error">❌ Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                status.innerHTML = `<div class="status error">❌ Network error: ${error.message}</div>`;
+            }
+
+            searchBtn.disabled = false;
+            searchBtn.textContent = 'Search';
+        }
+
+        function displayResults(recipes, query) {
+            if (recipes.length === 0) {
+                status.innerHTML = `<div class="status error">⚠️ No recipes found for "${query}". Try different keywords.</div>`;
+                return;
+            }
+
+            status.innerHTML = `<div class="status success">✅ Found ${recipes.length} recipes for "${query}"</div>`;
+            
+            results.innerHTML = recipes.map(recipe => `
+                <div class="recipe-card" onclick="showRecipeDetails(${JSON.stringify(recipe).replace(/"/g, '&quot;')})">
+                    <div class="recipe-image">
+                        ${recipe.image_path ? 
+                            `<img src="/${recipe.image_path}" alt="${recipe.title}" onerror="this.parentElement.innerHTML='🍽️'">` : 
+                            '🍽️'
+                        }
+                    </div>
+                    <div class="recipe-content">
+                        <div class="recipe-title">${recipe.title}</div>
+                        <div class="recipe-confidence">${recipe.confidence}% match</div>
+                        <div class="recipe-tags"><strong>Tags:</strong> ${recipe.tags}</div>
+                        <div class="recipe-preview">
+                            <div class="recipe-ingredients"><strong>Ingredients:</strong> ${recipe.ingredients.substring(0, 150)}${recipe.ingredients.length > 150 ? '...' : ''}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showRecipeDetails(recipe) {
+            modalContent.innerHTML = `
+                <h2>${recipe.title}</h2>
+                <div style="margin: 20px 0;">
+                    <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: bold;">${recipe.confidence}% match</span>
+                </div>
+                ${recipe.image_path ? 
+                    `<img src="/${recipe.image_path}" alt="${recipe.title}" style="width: 100%; max-width: 400px; height: 250px; object-fit: cover; border-radius: 15px; margin: 20px 0;" onerror="this.style.display='none'">` : 
+                    ''
+                }
+                <div style="margin: 20px 0;">
+                    <h3 style="color: #8e44ad; margin-bottom: 10px;">🏷️ Tags</h3>
+                    <p>${recipe.tags}</p>
+                </div>
+                <div style="margin: 20px 0;">
+                    <h3 style="color: #27ae60; margin-bottom: 10px;">🥗 Ingredients</h3>
+                    <p style="line-height: 1.6; white-space: pre-wrap;">${recipe.ingredients}</p>
+                </div>
+                <div style="margin: 20px 0;">
+                    <h3 style="color: #e67e22; margin-bottom: 10px;">👩‍🍳 Instructions</h3>
+                    <p style="line-height: 1.6; white-space: pre-wrap;">${recipe.instructions}</p>
+                </div>
+            `;
+            modal.style.display = 'block';
+        }
+
+        function searchExample(query) {
+            searchInput.value = query;
+            performSearch();
+        }
+
+        // Event listeners
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Focus on search input when page loads
+        searchInput.focus();
+    </script>
+</body>
+</html>
